@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-IPO Investment Diligence Engine</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Pre-IPO Investment Diligence Engine</h1>
+            <p class="subtitle">AI-Powered Investment Analysis & Report Generation</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section class="card" id="upload-section">
+                <h2>Upload Company Document</h2>
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="pdf-file">Select PDF File</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="pdf-file" name="file" accept=".pdf" required>
+                            <span class="file-input-label">Choose file...</span>
+                        </div>
+                        <small class="form-help">Upload a company financial document or investor presentation (PDF format, max 50MB)</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cheque_cr">Cheque Size (INR Cr)</label>
+                            <input type="number" id="cheque_cr" name="cheque_cr" value="350" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ownership_pct">Target Ownership (%)</label>
+                            <input type="number" id="ownership_pct" name="ownership_pct" value="11.5" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deal_type">Deal Type</label>
+                            <select id="deal_type" name="deal_type">
+                                <option value="Primary">Primary</option>
+                                <option value="Secondary">Secondary</option>
+                                <option value="Primary + Secondary">Primary + Secondary</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="multiple_low">Valuation Multiple - Low</label>
+                            <input type="number" id="multiple_low" name="multiple_low" value="14" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="multiple_base">Valuation Multiple - Base</label>
+                            <input type="number" id="multiple_base" name="multiple_base" value="16" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="multiple_high">Valuation Multiple - High</label>
+                            <input type="number" id="multiple_high" name="multiple_high" value="18" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        <span class="btn-text">Analyze Document</span>
+                        <span class="btn-loader" style="display: none;">Processing...</span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Status Section -->
+            <section class="card" id="status-section" style="display: none;">
+                <h2>Processing Status</h2>
+                <div id="status-content">
+                    <div class="status-item">
+                        <span class="status-label">Status:</span>
+                        <span class="status-value" id="status-value">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Progress:</span>
+                        <span class="status-value" id="progress-value">-</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section class="card" id="analytics-section" style="display: none;">
+                <h2>📈 Analytics & Visualizations</h2>
+                <div id="analytics-content">
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>Valuation Scenarios</h3>
+                            <canvas id="valuation-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Financial Metrics</h3>
+                            <canvas id="financial-metrics-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Market Comparables</h3>
+                            <canvas id="comps-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Growth Analysis</h3>
+                            <canvas id="growth-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="insights-panel" id="insights-panel">
+                        <h3>💡 Quick Insights</h3>
+                        <div id="insights-content"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Report Section -->
+            <section class="card" id="report-section" style="display: none;">
+                <div class="report-header">
+                    <h2>Generated Report</h2>
+                    <button class="btn btn-secondary" id="download-btn">Download Report</button>
+                </div>
+                <div id="report-content" class="report-content"></div>
+            </section>
+
+            <!-- Error Section -->
+            <section class="card error-card" id="error-section" style="display: none;">
+                <h2>Error</h2>
+                <div id="error-content"></div>
+                <button class="btn btn-secondary" onclick="hideError()">Close</button>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by connectifyTechnologies | Pre-IPO Investment Diligence Engine</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
