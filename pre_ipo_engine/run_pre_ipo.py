@@ -281,9 +281,42 @@ End the report with:
     
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(memo)
-    
+
     print(f"   ✅ Report generated: {output_path}")
-    return str(output_path)
+
+    # Build structured chart data so the frontend can render charts without regex parsing
+    entry_multiple = None
+    if valuation.get("base") and financials.get("ebitda_forward"):
+        try:
+            entry_multiple = round(valuation["base"] / financials["ebitda_forward"], 1)
+        except Exception:
+            pass
+
+    chart_data = {
+        "valuation": {
+            "low":  valuation.get("low"),
+            "base": valuation.get("base"),
+            "high": valuation.get("high"),
+        },
+        "financials": {
+            "revenue_latest":  financials.get("revenue_latest"),
+            "revenue_forward": financials.get("revenue_forward"),
+            "ebitda_forward":  financials.get("ebitda_forward"),
+            "ebitda_margin":   financials.get("ebitda_margin"),
+            "net_debt":        financials.get("net_debt"),
+        },
+        "growth": {
+            "revenue_cagr": financials.get("revenue_cagr"),
+            "ebitda_cagr":  financials.get("ebitda_cagr"),
+        },
+        "market": {
+            "listed_multiple":      market.get("listed_median_multiple"),
+            "transaction_multiple": market.get("transaction_median_multiple"),
+            "entry_multiple":       entry_multiple,
+        },
+    }
+
+    return {"report_path": str(output_path), "chart_data": chart_data}
 
 
 # =================================================
@@ -322,7 +355,8 @@ if __name__ == "__main__":
             continue
         
         try:
-            report_path = process_pdf(pdf_path)
+            result = process_pdf(pdf_path)
+            report_path = result["report_path"] if isinstance(result, dict) else result
             generated_reports.append(report_path)
         except Exception as e:
             print(f"❌ Error processing {pdf_path}: {e}")

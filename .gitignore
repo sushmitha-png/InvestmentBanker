@@ -1,0 +1,5 @@
+.env
+__pycache__/
+*.pyc
+venv/
+pre_ipo_engine/data/

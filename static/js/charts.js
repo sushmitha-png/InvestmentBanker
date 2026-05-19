@@ -70,7 +70,7 @@ function extractChartData(content) {
 // Create valuation chart
 function createValuationChart(data) {
     const ctx = document.getElementById('valuation-chart');
-    const container = ctx ? ctx.closest('.chart-container') : null;
+    const container = ctx ? ctx.closest('.chart-card') : null;
     
     if (!ctx || !container) {
         if (container) container.style.display = 'none';
@@ -153,7 +153,7 @@ function createValuationChart(data) {
 // Create financial metrics chart
 function createFinancialMetricsChart(data) {
     const ctx = document.getElementById('financial-metrics-chart');
-    const container = ctx ? ctx.closest('.chart-container') : null;
+    const container = ctx ? ctx.closest('.chart-card') : null;
     
     if (!ctx || !container) {
         if (container) container.style.display = 'none';
@@ -245,7 +245,7 @@ function createFinancialMetricsChart(data) {
 // Create market comparables chart
 function createCompsChart(data) {
     const ctx = document.getElementById('comps-chart');
-    const container = ctx ? ctx.closest('.chart-container') : null;
+    const container = ctx ? ctx.closest('.chart-card') : null;
     
     if (!ctx || !container) {
         if (container) container.style.display = 'none';
@@ -333,7 +333,7 @@ function createCompsChart(data) {
 // Create growth analysis chart
 function createGrowthChart(data) {
     const ctx = document.getElementById('growth-chart');
-    const container = ctx ? ctx.closest('.chart-container') : null;
+    const container = ctx ? ctx.closest('.chart-card') : null;
     
     if (!ctx || !container) {
         if (container) container.style.display = 'none';
@@ -490,20 +490,21 @@ function renderInsights(insights) {
 }
 
 // Initialize all charts
-function initializeCharts(content, metrics) {
+// structuredData: pre-computed chart data from backend (preferred over regex parsing)
+function initializeCharts(content, metrics, structuredData) {
     try {
-        const chartData = extractChartData(content);
-        
-        // Debug: Log extracted data
-        console.log('Extracted chart data:', chartData);
-        
-        // Create all charts
+        // Use backend structured data when available; fall back to regex parsing
+        const chartData = (structuredData && (structuredData.valuation || structuredData.financials))
+            ? structuredData
+            : extractChartData(content);
+
+        console.log('Chart data:', chartData);
+
         createValuationChart(chartData);
         createFinancialMetricsChart(chartData);
         createCompsChart(chartData);
         createGrowthChart(chartData);
-        
-        // Generate and render insights
+
         const insights = generateInsights(chartData, metrics);
         renderInsights(insights);
     } catch (error) {

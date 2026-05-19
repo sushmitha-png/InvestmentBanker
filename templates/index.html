@@ -3,143 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pre-IPO Investment Diligence Engine</title>
+    <title>InvestIQ — Pre-IPO Diligence Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📊 Pre-IPO Investment Diligence Engine</h1>
-            <p class="subtitle">AI-Powered Investment Analysis & Report Generation</p>
-        </header>
 
-        <main>
-            <!-- Upload Section -->
-            <section class="card" id="upload-section">
-                <h2>Upload Company Document</h2>
-                <form id="upload-form" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="pdf-file">Select PDF File</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="pdf-file" name="file" accept=".pdf" required>
-                            <span class="file-input-label">Choose file...</span>
-                        </div>
-                        <small class="form-help">Upload a company financial document or investor presentation (PDF format, max 50MB)</small>
-                    </div>
+<!-- ===== HEADER ===== -->
+<header class="site-header">
+    <div class="header-inner">
+        <div class="logo">
+            <svg class="logo-mark" viewBox="0 0 24 24" fill="none">
+                <polygon points="12,2 22,12 12,22 2,12" fill="#3B82F6"/>
+                <polygon points="12,6 18,12 12,18 6,12" fill="#1D4ED8"/>
+            </svg>
+            <span class="logo-name">InvestIQ</span>
+        </div>
+        <span class="header-badge">Pre-IPO Diligence Engine</span>
+    </div>
+</header>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cheque_cr">Cheque Size (INR Cr)</label>
-                            <input type="number" id="cheque_cr" name="cheque_cr" value="350" step="0.1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="ownership_pct">Target Ownership (%)</label>
-                            <input type="number" id="ownership_pct" name="ownership_pct" value="11.5" step="0.1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="deal_type">Deal Type</label>
-                            <select id="deal_type" name="deal_type">
-                                <option value="Primary">Primary</option>
-                                <option value="Secondary">Secondary</option>
-                                <option value="Primary + Secondary">Primary + Secondary</option>
-                            </select>
-                        </div>
-                    </div>
+<!-- ===== STEP TRACKER ===== -->
+<div class="step-track">
+    <div class="step-wrap" id="sw-1">
+        <div class="step-node active" id="sn-1"><span>1</span></div>
+        <div class="step-lbl">Upload PDF</div>
+    </div>
+    <div class="step-line" id="sl-12"></div>
+    <div class="step-wrap" id="sw-2">
+        <div class="step-node" id="sn-2"><span>2</span></div>
+        <div class="step-lbl">Select Company</div>
+    </div>
+    <div class="step-line" id="sl-23"></div>
+    <div class="step-wrap" id="sw-3">
+        <div class="step-node" id="sn-3"><span>3</span></div>
+        <div class="step-lbl">Run Analysis</div>
+    </div>
+</div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="multiple_low">Valuation Multiple - Low</label>
-                            <input type="number" id="multiple_low" name="multiple_low" value="14" step="0.1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="multiple_base">Valuation Multiple - Base</label>
-                            <input type="number" id="multiple_base" name="multiple_base" value="16" step="0.1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="multiple_high">Valuation Multiple - High</label>
-                            <input type="number" id="multiple_high" name="multiple_high" value="18" step="0.1" required>
-                        </div>
-                    </div>
+<!-- ===== MAIN ===== -->
+<main class="page-main">
 
-                    <button type="submit" class="btn btn-primary" id="submit-btn">
-                        <span class="btn-text">Analyze Document</span>
-                        <span class="btn-loader" style="display: none;">Processing...</span>
-                    </button>
-                </form>
-            </section>
+    <!-- PANEL 1: Upload & Search -->
+    <section class="card" id="panel-upload">
+        <div class="panel-head">
+            <h2>Upload Company Document</h2>
+            <p>Drop an investor teaser or pitch deck — we'll scan it and surface the companies for you.</p>
+        </div>
 
-            <!-- Status Section -->
-            <section class="card" id="status-section" style="display: none;">
-                <h2>Processing Status</h2>
-                <div id="status-content">
-                    <div class="status-item">
-                        <span class="status-label">Status:</span>
-                        <span class="status-value" id="status-value">-</span>
+        <label id="drop-zone" class="drop-zone" for="pdf-input">
+            <input type="file" id="pdf-input" accept=".pdf">
+            <div class="drop-icon" id="drop-icon">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="12" x2="12" y2="18"/>
+                    <polyline points="9 15 12 18 15 15"/>
+                </svg>
+            </div>
+            <div class="drop-title" id="drop-title">Drag &amp; drop PDF here</div>
+            <div class="drop-sub">or <u>click to browse</u></div>
+            <div class="drop-meta">PDF format · max 50 MB</div>
+        </label>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:1.25rem;">
+            <button class="btn btn-primary btn-lg" id="search-btn" disabled>
+                <span id="search-text">Scan PDF</span>
+                <span id="search-spin" style="display:none">Scanning…</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- PANEL 2: Company Selection -->
+    <section class="card" id="panel-companies" style="display:none">
+        <div class="panel-head">
+            <h2 id="companies-heading">Companies Found</h2>
+            <p id="companies-subhead">Click the company you want to analyze.</p>
+        </div>
+        <div class="companies-grid" id="companies-grid"></div>
+        <button class="btn btn-ghost" id="btn-back-upload">← Back to upload</button>
+    </section>
+
+    <!-- PANEL 3: Deal Configuration -->
+    <section class="card" id="panel-configure" style="display:none">
+        <div class="selected-banner" id="selected-banner"></div>
+
+        <div class="panel-head" style="margin-top:1.5rem">
+            <h2>Deal Parameters</h2>
+            <p>Your investment terms — sensible defaults are pre-filled. Adjust only what you need.</p>
+        </div>
+
+        <form id="analyze-form">
+            <div class="fields-row">
+                <div class="field-grp">
+                    <label class="field-lbl" for="cheque_cr">
+                        Cheque Size <span class="field-unit">INR Cr</span>
+                    </label>
+                    <input type="number" id="cheque_cr" name="cheque_cr" class="num-input" value="350" step="0.1" min="1">
+                    <span class="field-hint">Total investment amount</span>
+                </div>
+                <div class="field-grp">
+                    <label class="field-lbl" for="ownership_pct">
+                        Target Ownership <span class="field-unit">%</span>
+                    </label>
+                    <input type="number" id="ownership_pct" name="ownership_pct" class="num-input" value="11.5" step="0.1" min="0.1" max="100">
+                    <span class="field-hint">Equity stake you're acquiring</span>
+                </div>
+                <div class="field-grp">
+                    <label class="field-lbl" for="deal_type">Deal Type</label>
+                    <select id="deal_type" name="deal_type" class="sel-input">
+                        <option value="Primary">Primary (new shares)</option>
+                        <option value="Secondary">Secondary (existing shares)</option>
+                        <option value="Primary + Secondary">Primary + Secondary</option>
+                    </select>
+                    <span class="field-hint">New vs. existing share issuance</span>
+                </div>
+            </div>
+
+            <button type="button" class="adv-toggle" id="adv-toggle">
+                <span>⚙ Valuation Multiples</span>
+                <span class="adv-arrow" id="adv-arrow">▸</span>
+            </button>
+            <div class="adv-box" id="adv-box" style="display:none">
+                <p class="adv-note">EBITDA multiples used to compute enterprise value range. Defaults are sector-appropriate — expand only to override.</p>
+                <div class="fields-row">
+                    <div class="field-grp">
+                        <label class="field-lbl" for="multiple_low">Bear Case <span class="field-unit">× EBITDA</span></label>
+                        <input type="number" id="multiple_low" name="multiple_low" class="num-input" value="14" step="0.5" min="1">
                     </div>
-                    <div class="status-item">
-                        <span class="status-label">Progress:</span>
-                        <span class="status-value" id="progress-value">-</span>
+                    <div class="field-grp">
+                        <label class="field-lbl" for="multiple_base">Base Case <span class="field-unit">× EBITDA</span></label>
+                        <input type="number" id="multiple_base" name="multiple_base" class="num-input" value="16" step="0.5" min="1">
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
+                    <div class="field-grp">
+                        <label class="field-lbl" for="multiple_high">Bull Case <span class="field-unit">× EBITDA</span></label>
+                        <input type="number" id="multiple_high" name="multiple_high" class="num-input" value="18" step="0.5" min="1">
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- Analytics Section -->
-            <section class="card" id="analytics-section" style="display: none;">
-                <h2>📈 Analytics & Visualizations</h2>
-                <div id="analytics-content">
-                    <div class="charts-grid">
-                        <div class="chart-container">
-                            <h3>Valuation Scenarios</h3>
-                            <canvas id="valuation-chart"></canvas>
-                        </div>
-                        <div class="chart-container">
-                            <h3>Financial Metrics</h3>
-                            <canvas id="financial-metrics-chart"></canvas>
-                        </div>
-                        <div class="chart-container">
-                            <h3>Market Comparables</h3>
-                            <canvas id="comps-chart"></canvas>
-                        </div>
-                        <div class="chart-container">
-                            <h3>Growth Analysis</h3>
-                            <canvas id="growth-chart"></canvas>
-                        </div>
-                    </div>
-                    <div class="insights-panel" id="insights-panel">
-                        <h3>💡 Quick Insights</h3>
-                        <div id="insights-content"></div>
-                    </div>
-                </div>
-            </section>
+            <div class="form-actions">
+                <button type="button" class="btn btn-ghost" id="btn-back-companies">← Change company</button>
+                <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn">
+                    <span id="analyze-text">Run Full Analysis</span>
+                    <span id="analyze-spin" style="display:none">Starting…</span>
+                </button>
+            </div>
+        </form>
+    </section>
 
-            <!-- Report Section -->
-            <section class="card" id="report-section" style="display: none;">
-                <div class="report-header">
-                    <h2>Generated Report</h2>
-                    <button class="btn btn-secondary" id="download-btn">Download Report</button>
-                </div>
-                <div id="report-content" class="report-content"></div>
-            </section>
+    <!-- PANEL 4: Progress -->
+    <section class="card" id="panel-progress" style="display:none">
+        <div class="panel-head">
+            <h2>Running Analysis</h2>
+            <p>AI-powered diligence in progress — typically 30–90 seconds.</p>
+        </div>
+        <div class="asteps" id="asteps">
+            <div class="astep active" id="as-1">
+                <div class="astep-dot"></div>
+                <div class="astep-lbl">Extracting financial data &amp; business context</div>
+            </div>
+            <div class="astep" id="as-2">
+                <div class="astep-dot"></div>
+                <div class="astep-lbl">Fetching market comparables</div>
+            </div>
+            <div class="astep" id="as-3">
+                <div class="astep-dot"></div>
+                <div class="astep-lbl">Computing valuation &amp; consistency checks</div>
+            </div>
+            <div class="astep" id="as-4">
+                <div class="astep-dot"></div>
+                <div class="astep-lbl">Generating Investment Committee report</div>
+            </div>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="prog-status" id="prog-status">Starting…</div>
+    </section>
 
-            <!-- Error Section -->
-            <section class="card error-card" id="error-section" style="display: none;">
-                <h2>Error</h2>
-                <div id="error-content"></div>
-                <button class="btn btn-secondary" onclick="hideError()">Close</button>
-            </section>
-        </main>
+    <!-- PANEL 5: Analytics -->
+    <section class="card" id="panel-analytics" style="display:none">
+        <h2 class="section-h2">Analytics &amp; Visualizations</h2>
+        <div class="charts-grid">
+            <div class="chart-card"><h3>Valuation Scenarios</h3><canvas id="valuation-chart"></canvas></div>
+            <div class="chart-card"><h3>Financial Metrics</h3><canvas id="financial-metrics-chart"></canvas></div>
+            <div class="chart-card"><h3>Market Comparables</h3><canvas id="comps-chart"></canvas></div>
+            <div class="chart-card"><h3>Growth Analysis</h3><canvas id="growth-chart"></canvas></div>
+        </div>
+        <div class="insights-box" id="insights-panel">
+            <h3>Quick Insights</h3>
+            <div id="insights-content"></div>
+        </div>
+    </section>
 
-        <footer>
-            <p>Powered by connectifyTechnologies | Pre-IPO Investment Diligence Engine</p>
-        </footer>
+    <!-- PANEL 6: Report -->
+    <section class="card" id="panel-report" style="display:none">
+        <div class="report-bar">
+            <h2>Diligence Report</h2>
+            <button class="btn btn-outline" id="download-btn">↓ Download .md</button>
+        </div>
+        <div id="report-content" class="report-body"></div>
+        <div style="text-align:center;margin-top:2rem">
+            <button class="btn btn-ghost" id="new-analysis-btn">+ Start New Analysis</button>
+        </div>
+    </section>
+
+    <!-- ERROR TOAST -->
+    <div class="error-toast" id="error-toast" style="display:none">
+        <span class="et-icon">⚠</span>
+        <span class="et-msg" id="error-msg">An error occurred.</span>
+        <button class="et-close" onclick="hideError()">×</button>
     </div>
 
-    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</main>
+
+<footer class="site-footer">
+    <p>Powered by Connectify Technologies &middot; Pre-IPO Investment Diligence Engine</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/charts.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=2"></script>
 </body>
 </html>
 

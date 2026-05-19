@@ -1,11 +1,18 @@
-import vertexai
 import json
 import re
-from vertexai.generative_models import GenerativeModel
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
 
-def init_gemini(project_id: str, location: str = "us-central1"):
-    vertexai.init(project=project_id, location=location)
-    return GenerativeModel("gemini-2.5-pro")
+# Load .env from project root (two levels up from this file)
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '..', '.env'))
+
+def init_gemini(project_id: str = None, location: str = None):
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY not found. Please set it in the .env file.")
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel("gemini-2.5-pro")
 
 def ask_gemini(model, prompt: str) -> str:
     response = model.generate_content(
