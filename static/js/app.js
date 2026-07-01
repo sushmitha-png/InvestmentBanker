@@ -61,7 +61,8 @@ const pdfInput  = $('pdf-input');
 const searchBtn = $('search-btn');
 
 if (dropZone) {
-    dropZone.addEventListener('click', () => pdfInput && pdfInput.click());
+    // Note: <label for="pdf-input"> wraps the drop zone, so native HTML
+    // already opens the file dialog on click. No JS click handler needed.
 
     dropZone.addEventListener('dragover', e => {
         e.preventDefault();
@@ -423,8 +424,15 @@ function extractSummaryMetrics(content) {
     metrics.recommendation  = g(/INVESTMENT RECOMMENDATION[\s\S]*?(STRONG BUY|BUY|CAUTIOUS BUY|HOLD|PASS)/i);
     const conf = g(/Confidence Level:.*?(\d+)\/10/i);
     if (conf) metrics.confidence = parseInt(conf);
-    metrics.fairValue       = g(/Recommended Fair Value.*?₹([\d,]+)\s*Cr/i);
-    metrics.entryMultiple   = g(/Implied Entry Multiple.*?([\d.]+)x/i);
+    metrics.fairValue       = g(/Recommended Fair Value.*?[$₹]?([\d,]+)\s*Cr/i)
+                           || g(/Recommended Fair Value.*?[$₹]?([\d,]+)\s*Mn/i)
+                           || g(/Recommended Fair Value.*?[$₹]?([\d,]+)/i);
+    const preMoney  = g(/Implied Pre-Money Entry Multiple.*?([\d.]+)x/i);
+    const postMoney = g(/Implied Post-Money Entry Multiple.*?([\d.]+)x/i);
+    metrics.entryMultiple = preMoney || postMoney || g(/Implied Entry Multiple.*?([\d.]+)x/i);
+    if (preMoney && postMoney && preMoney !== postMoney) {
+        metrics.entryMultipleLabel = `Pre: ${preMoney}x / Post: ${postMoney}x`;
+    }
 
     const vd = content.match(/Valuation vs Current Deal:.*?(Overvalued|Fair|Undervalued).*?([\d.]+)%/i);
     if (vd) { metrics.valuationVsDeal = vd[1]; metrics.valuationPercent = vd[2]; }
@@ -432,7 +440,7 @@ function extractSummaryMetrics(content) {
     const pe = content.match(/Expected IPO Opening P\/E Ratio:.*?([\d.]+)x.*?([\d.]+)x/i);
     if (pe) metrics.ipoPE = `${pe[1]}x – ${pe[2]}x`;
 
-    const pb = content.match(/Expected IPO Price Band.*?₹([\d,]+).*?₹([\d,]+)/i);
+    const pb = content.match(/Expected IPO Price Band.*?[$₹]?([\d,]+).*?[$₹]?([\d,]+)/i);
     if (pb) metrics.ipoPriceBand = `₹${pb[1]} – ₹${pb[2]}`;
 
     const up = content.match(/Upside Potential.*?([\d.]+)%\s*to\s*([\d.]+)%/i);
@@ -456,6 +464,10 @@ function createSummaryDashboard(metrics, fullContent) {
     const vm = fullContent.match(/QUICK VERDICT[\s\S]*?([^\n]+(?:\n[^\n]+){0,2})/i);
     if (vm) quickVerdict = vm[1].trim();
 
+    const hasFairValue = !!(metrics.fairValue || metrics.entryMultiple || metrics.valuationVsDeal);
+    const hasIpoData   = !!(metrics.ipoPE || metrics.ipoPriceBand || metrics.upsidePotential);
+    const hasRiskData  = !!(metrics.riskLevel || metrics.rewardPotential);
+
     return `<div class="summary-dashboard">
         <div class="summary-header"><h2>📊 Executive Summary Dashboard</h2></div>
         <div class="summary-grid">
@@ -463,7 +475,7 @@ function createSummaryDashboard(metrics, fullContent) {
                 <div class="card-icon">🎯</div>
                 <div class="card-content">
                     <div class="card-label">Investment Recommendation</div>
-                    <div class="card-value" style="color:${recColor}">${metrics.recommendation || 'N/A'}</div>
+                    <div class="card-value" style="color:${recColor}">${metrics.recommendation || 'Data unavailable — see diligence notes'}</div>
                     ${metrics.confidence ? `<div class="card-subtext">Confidence: ${metrics.confidence}/10</div>` : ''}
                 </div>
             </div>
@@ -471,28 +483,34 @@ function createSummaryDashboard(metrics, fullContent) {
                 <div class="card-icon">💰</div>
                 <div class="card-content">
                     <div class="card-label">Fair Value</div>
-                    <div class="card-value">${metrics.fairValue ? `₹${metrics.fairValue} Cr` : 'N/A'}</div>
-                    ${metrics.entryMultiple ? `<div class="card-subtext">Entry Multiple: ${metrics.entryMultiple}x</div>` : ''}
-                    ${metrics.valuationVsDeal ? `<div class="card-subtext" style="color:${metrics.valuationVsDeal==='Overvalued'?'#ef4444':metrics.valuationVsDeal==='Undervalued'?'#10b981':'#64748b'}">${metrics.valuationVsDeal}${metrics.valuationPercent ? ` by ${metrics.valuationPercent}%` : ''}</div>` : ''}
+                    ${hasFairValue ? `
+                        <div class="card-value">${metrics.fairValue ? `₹${metrics.fairValue} Cr` : ''}</div>
+                        ${metrics.entryMultiple ? `<div class="card-subtext">Entry Multiple: ${metrics.entryMultipleLabel || metrics.entryMultiple + 'x'}</div>` : ''}
+                        ${metrics.valuationVsDeal ? `<div class="card-subtext" style="color:${metrics.valuationVsDeal==='Overvalued'?'#ef4444':metrics.valuationVsDeal==='Undervalued'?'#10b981':'#64748b'}">${metrics.valuationVsDeal}${metrics.valuationPercent ? ` by ${metrics.valuationPercent}%` : ''}</div>` : ''}
+                    ` : '<div class="card-value card-value-missing">Data unavailable — see diligence notes</div>'}
                 </div>
             </div>
             <div class="summary-card">
                 <div class="card-icon">📈</div>
                 <div class="card-content">
                     <div class="card-label">IPO Price Prediction</div>
-                    ${metrics.ipoPE ? `<div class="card-value">${metrics.ipoPE}</div>` : ''}
-                    ${metrics.ipoPriceBand ? `<div class="card-subtext">Price Band: ${metrics.ipoPriceBand}</div>` : ''}
-                    ${metrics.upsidePotential ? `<div class="card-subtext" style="color:#10b981">Upside: ${metrics.upsidePotential}</div>` : ''}
+                    ${hasIpoData ? `
+                        ${metrics.ipoPE ? `<div class="card-value">${metrics.ipoPE}</div>` : ''}
+                        ${metrics.ipoPriceBand ? `<div class="card-subtext">Price Band: ${metrics.ipoPriceBand}</div>` : ''}
+                        ${metrics.upsidePotential ? `<div class="card-subtext" style="color:#10b981">Upside: ${metrics.upsidePotential}</div>` : ''}
+                    ` : '<div class="card-value card-value-missing">Data unavailable — see diligence notes</div>'}
                 </div>
             </div>
             <div class="summary-card">
                 <div class="card-icon">🎲</div>
                 <div class="card-content">
                     <div class="card-label">Risk–Reward</div>
-                    <div class="risk-reward-row">
-                        ${metrics.riskLevel ? `<div class="risk-reward-item"><span class="risk-reward-label">Risk</span><span class="risk-reward-value" style="color:${riskColor}">${metrics.riskLevel}</span></div>` : ''}
-                        ${metrics.rewardPotential ? `<div class="risk-reward-item"><span class="risk-reward-label">Reward</span><span class="risk-reward-value" style="color:${rewardColor}">${metrics.rewardPotential}</span></div>` : ''}
-                    </div>
+                    ${hasRiskData ? `
+                        <div class="risk-reward-row">
+                            ${metrics.riskLevel ? `<div class="risk-reward-item"><span class="risk-reward-label">Risk</span><span class="risk-reward-value" style="color:${riskColor}">${metrics.riskLevel}</span></div>` : ''}
+                            ${metrics.rewardPotential ? `<div class="risk-reward-item"><span class="risk-reward-label">Reward</span><span class="risk-reward-value" style="color:${rewardColor}">${metrics.rewardPotential}</span></div>` : ''}
+                        </div>
+                    ` : '<div class="card-value card-value-missing">Data unavailable — see diligence notes</div>'}
                 </div>
             </div>
         </div>

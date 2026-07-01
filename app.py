@@ -113,25 +113,28 @@ def extract_companies_endpoint():
         )
 
         prompt = f"""You are an analyst reviewing an investor teaser or pre-IPO pitch deck.
-Your task is to identify ONLY the company (or companies) that this document is ABOUT — i.e. the investment target / subject of the pitch.
-DO NOT include companies that are merely referenced as: competitors, customers, investors, logo sources, data citations, market examples, or brands used on slides.{query_hint}
+            Your task is to identify ONLY the company (or companies) that this document is ABOUT — i.e. the investment target / subject of the pitch.
+            DO NOT include companies that are merely referenced as: competitors, customers, investors, logo sources, data citations, market examples, or brands used on slides.{query_hint}
 
-Rules:
-1. Return the primary subject company first (is_primary: true).
-2. If the document describes multiple DISTINCT variants of what appears to be the same company (e.g. "MetaShot Gaming" and "MetaShot Fitness" operating in genuinely different verticals), list each variant separately so the user can pick the right one.
-3. If there is only one clear subject, return just that one company.
-4. Never include well-known third-party companies (Google, Amazon, Meta, Bloomberg, Deloitte, etc.) unless one of them is literally the company being pitched.
+            Rules:
+            1. Return the primary subject company first (is_primary: true).
+            2. If the document describes multiple DISTINCT variants of what appears to be the same company 
+            (e.g. "MetaShot Gaming" and "MetaShot Fitness" operating in genuinely different verticals), 
+            list each variant separately so the user can pick the right one.
+            3. If there is only one clear subject, return just that one company.
+            4. Never include well-known third-party companies (Google, Amazon, Meta, Bloomberg, Deloitte, etc.) 
+            unless one of them is literally the company being pitched.
 
-For each subject company return:
-- name: full official company name
-- sector: industry sector (e.g. EdTech, Healthcare, FinTech, SaaS, Gaming, E-commerce, Manufacturing)
-- description: one sentence about what the company does and its core value proposition
-- is_primary: true for the main subject, false for secondary variants
+            For each subject company return:
+            - name: full official company name
+            - sector: industry sector (e.g. EdTech, Healthcare, FinTech, SaaS, Gaming, E-commerce, Manufacturing)
+            - description: one sentence about what the company does and its core value proposition
+            - is_primary: true for the main subject, false for secondary variants
 
-Also extract any deal / investment terms explicitly stated in the document:
-- cheque_cr: investment size in INR Crores (number, null if absent)
-- ownership_pct: equity % being offered (number, null if absent)
-- deal_type: "Primary", "Secondary", or "Primary + Secondary" (null if absent)
+            Also extract any deal / investment terms explicitly stated in the document:
+            - cheque_cr: investment size in INR Crores (number, null if absent)
+            - ownership_pct: equity % being offered (number, null if absent)
+            - deal_type: "Primary", "Secondary", or "Primary + Secondary" (null if absent)
 
 Document text:
 {truncated}

@@ -60,7 +60,7 @@ source venv/bin/activate
 # On Windows:
 venv\Scripts\activate
 ```
-
+<!-- .\.venv\Scripts\Activate -->
 ### 2. Install Dependencies
 
 The project requires the following Python packages:

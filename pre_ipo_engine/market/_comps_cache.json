@@ -1,0 +1,14 @@
+{
+  "saas": {
+    "industry": "SaaS",
+    "listed_comps": [
+      "Freshworks Inc.",
+      "RateGain Travel Technologies Ltd.",
+      "MapmyIndia (CE Info Systems Ltd.)",
+      "Tanla Platforms Ltd."
+    ],
+    "listed_median_multiple": 28.0,
+    "transaction_median_multiple": 21.0,
+    "market_structure": "Highly fragmented and competitive, with increasing consolidation."
+  }
+}

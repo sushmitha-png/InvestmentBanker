@@ -23,29 +23,45 @@ function extractChartData(content) {
         }
     };
     
-    // Extract valuation - use more flexible pattern
-    const valMatch = content.match(/VALUATION[\s\S]*?EV[\s\S]*?mn[\s\S]*?Low Case:[\s]*([\d,]+|N\/A)[\s\S]*?Base Case:[\s]*([\d,]+|N\/A)[\s\S]*?High Case:[\s]*([\d,]+|N\/A)/i);
+    // Extract valuation - use flexible pattern that handles $/₹ and various formats
+    const valMatch = content.match(/VALUATION[\s\S]*?EV[\s\S]*?mn[\s\S]*?Low Case:[\s]*[$₹]?([\d,]+|N\/A)[\s\S]*?Base Case:[\s]*[$₹]?([\d,]+|N\/A)[\s\S]*?High Case:[\s]*[$₹]?([\d,]+|N\/A)/i);
     if (valMatch && valMatch[1] !== 'N/A' && valMatch[2] !== 'N/A' && valMatch[3] !== 'N/A') {
         data.valuation.low = parseFloat(valMatch[1].replace(/,/g, '')) || null;
         data.valuation.base = parseFloat(valMatch[2].replace(/,/g, '')) || null;
         data.valuation.high = parseFloat(valMatch[3].replace(/,/g, '')) || null;
     }
     
-    // Extract financial metrics
-    const revLatestMatch = content.match(/Latest Revenue:[\s]*([\d,]+)/i);
-    if (revLatestMatch) data.financials.revenue_latest = parseFloat(revLatestMatch[1].replace(/,/g, ''));
+    // Extract financial metrics — handle both plain numbers and currency-prefixed values
+    const numPattern = '[\\d,.]+';
+    const revLatestMatch = content.match(new RegExp(`Latest Revenue:[\\s]*[$₹]?${numPattern}`, 'i'));
+    if (revLatestMatch) {
+        const raw = revLatestMatch[0].replace(/[$₹]/g, '');
+        data.financials.revenue_latest = parseFloat(raw.replace(/,/g, '')) || null;
+    }
     
-    const revForwardMatch = content.match(/Forward Revenue:[\s]*([\d,]+)/i);
-    if (revForwardMatch) data.financials.revenue_forward = parseFloat(revForwardMatch[1].replace(/,/g, ''));
+    const revForwardMatch = content.match(new RegExp(`Forward Revenue:[\\s]*[$₹]?${numPattern}`, 'i'));
+    if (revForwardMatch) {
+        const raw = revForwardMatch[0].replace(/[$₹]/g, '');
+        data.financials.revenue_forward = parseFloat(raw.replace(/,/g, '')) || null;
+    }
     
-    const ebitdaMatch = content.match(/Forward EBITDA:[\s]*([\d,]+)/i);
-    if (ebitdaMatch) data.financials.ebitda_forward = parseFloat(ebitdaMatch[1].replace(/,/g, ''));
+    const ebitdaMatch = content.match(new RegExp(`Forward EBITDA:[\\s]*[$₹]?${numPattern}`, 'i'));
+    if (ebitdaMatch) {
+        const raw = ebitdaMatch[0].replace(/[$₹]/g, '');
+        data.financials.ebitda_forward = parseFloat(raw.replace(/,/g, '')) || null;
+    }
     
-    const marginMatch = content.match(/EBITDA Margin:[\s]*([\d.]+)%?/i);
-    if (marginMatch) data.financials.ebitda_margin = parseFloat(marginMatch[1]);
+    const marginMatch = content.match(new RegExp(`EBITDA Margin:[\\s]*${numPattern}%?`, 'i'));
+    if (marginMatch) {
+        const raw = marginMatch[0].replace(/[%]/g, '');
+        data.financials.ebitda_margin = parseFloat(raw.replace(/[^\d.]/g, '')) || null;
+    }
     
-    const debtMatch = content.match(/Net Debt:[\s]*([\d,]+)/i);
-    if (debtMatch) data.financials.net_debt = parseFloat(debtMatch[1].replace(/,/g, ''));
+    const debtMatch = content.match(new RegExp(`Net Debt:[\\s]*[$₹]?${numPattern}`, 'i'));
+    if (debtMatch) {
+        const raw = debtMatch[0].replace(/[$₹]/g, '');
+        data.financials.net_debt = parseFloat(raw.replace(/,/g, '')) || null;
+    }
     
     // Extract growth metrics
     const revCagrMatch = content.match(/Revenue CAGR:[\s]*([\d.]+)%?/i);
@@ -330,6 +346,13 @@ function createCompsChart(data) {
     });
 }
 
+// Helper: parse a value that might be a percentage string ("23%") into a number
+function parsePct(val) {
+    if (val == null) return null;
+    if (typeof val === 'string') return parseFloat(val.replace('%', ''));
+    return typeof val === 'number' ? val : null;
+}
+
 // Create growth analysis chart
 function createGrowthChart(data) {
     const ctx = document.getElementById('growth-chart');
@@ -347,14 +370,16 @@ function createGrowthChart(data) {
     const labels = [];
     const values = [];
     
-    if (data.growth.revenue_cagr) {
+    const revCagr = parsePct(data.growth.revenue_cagr);
+    if (revCagr !== null) {
         labels.push('Revenue CAGR');
-        values.push(data.growth.revenue_cagr);
+        values.push(revCagr);
     }
     
-    if (data.growth.ebitda_cagr) {
+    const ebitdaCagr = parsePct(data.growth.ebitda_cagr);
+    if (ebitdaCagr !== null) {
         labels.push('EBITDA CAGR');
-        values.push(data.growth.ebitda_cagr);
+        values.push(ebitdaCagr);
     }
     
     if (labels.length === 0) {
@@ -432,13 +457,14 @@ function generateInsights(data, metrics) {
     }
     
     // Growth insight
-    if (data.growth.revenue_cagr && data.growth.ebitda_cagr) {
-        const operatingLeverage = data.growth.ebitda_cagr > data.growth.revenue_cagr;
-        if (operatingLeverage) {
+    const revCagr = parsePct(data.growth.revenue_cagr);
+    const ebitdaCagr = parsePct(data.growth.ebitda_cagr);
+    if (revCagr !== null && ebitdaCagr !== null) {
+        if (ebitdaCagr > revCagr) {
             insights.push({
                 icon: '📈',
                 title: 'Strong Operating Leverage',
-                text: `EBITDA growing at ${data.growth.ebitda_cagr.toFixed(1)}% vs Revenue at ${data.growth.revenue_cagr.toFixed(1)}% indicates strong operating leverage and margin expansion.`
+                text: `EBITDA growing at ${ebitdaCagr.toFixed(1)}% vs Revenue at ${revCagr.toFixed(1)}% indicates strong operating leverage and margin expansion.`
             });
         }
     }
@@ -456,12 +482,13 @@ function generateInsights(data, metrics) {
     }
     
     // Margin analysis
-    if (data.financials.ebitda_margin) {
-        const marginLevel = data.financials.ebitda_margin >= 20 ? 'Strong' : data.financials.ebitda_margin >= 15 ? 'Good' : 'Moderate';
+    const ebitdaMargin = parsePct(data.financials.ebitda_margin);
+    if (ebitdaMargin !== null) {
+        const marginLevel = ebitdaMargin >= 20 ? 'Strong' : ebitdaMargin >= 15 ? 'Good' : 'Moderate';
         insights.push({
             icon: '💎',
             title: 'Profitability',
-            text: `${marginLevel} EBITDA margin of ${data.financials.ebitda_margin.toFixed(1)}% indicates ${marginLevel.toLowerCase()} operational efficiency.`
+            text: `${marginLevel} EBITDA margin of ${ebitdaMargin.toFixed(1)}% indicates ${marginLevel.toLowerCase()} operational efficiency.`
         });
     }
     

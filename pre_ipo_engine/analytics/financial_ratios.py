@@ -12,9 +12,9 @@ def compute_financial_ratios(financials):
     
     revenue_growth_quality = "Moderate"
     if financials.get("revenue_cagr"):
-        # Extract numeric value from percentage string
+        # Extract numeric value (handles both "23%" string and 23.0 number)
         try:
-            cagr_value = float(financials["revenue_cagr"].replace("%", ""))
+            cagr_value = float(str(financials["revenue_cagr"]).replace("%", ""))
             revenue_growth_quality = "High" if cagr_value >= 20 else "Moderate"
         except (ValueError, AttributeError):
             pass
